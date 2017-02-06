@@ -1,5 +1,5 @@
 body {
-	font-family: 'Lato', sans-serif;
+	font-family: "Lato", sans-serif;
 }
 
 header {
@@ -24,9 +24,11 @@ footer {
 .color-dark-blue {
 	color: #2d3c49;
 }
+
 .color-light-blue {
 	color: #7d97ad;
 }
+
 .text-light {
 	font-weight: lighter;
 	font-size: 60px;
