@@ -6,15 +6,39 @@ header {
 	max-height: 20%;
 }
 
-hr {
+footer {
+
+}
+
+a {
+	color: #2d3c49;
+}
+
+a:hover {
+	text-decoration: none;
+	color: #7d97ad;
+}
+
+p {
+	color: #2d3c49;
+}
+
+h1, h2, h3, h4, h5, h6 { 
+	color: #2d3c49; 
+	font-style: italic;
+}
+
+hr.header {
 
     background-color: #7d97ad;
     height: 4px;
 }
 
-footer {
-
+hr.footer {
+	background-color: #7d97ad;
+    height: 1px;
 }
+
 .head-logo {
 	max-height: 100px;
 	margin-left: -5px;
