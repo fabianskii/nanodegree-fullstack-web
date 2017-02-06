@@ -6,14 +6,28 @@ header {
 	max-height: 20%;
 }
 
+hr {
+
+    background-color: #7d97ad;
+    height: 4px;
+}
+
+footer {
+
+}
 .head-logo {
 	max-height: 100px;
+	margin-left: -5px;
+    margin-top: 20px;
 }
 
 .color-dark-blue {
 	color: #2d3c49;
 }
-
+.color-light-blue {
+	color: #7d97ad;
+}
 .text-light {
 	font-weight: lighter;
+	font-size: 60px;
 }
