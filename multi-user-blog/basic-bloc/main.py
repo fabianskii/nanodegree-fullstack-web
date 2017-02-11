@@ -2,7 +2,7 @@ import jinja2
 import webapp2
 import os
 
-template_dir = os.path.join(os.path.dirname(__file__), 'static/templates')
+template_dir = os.path.join(os.path.dirname(__file__), '')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
 
 class Handler(webapp2.RequestHandler):
@@ -18,7 +18,6 @@ class Handler(webapp2.RequestHandler):
 
 class MainPage(Handler):
 	def get(self):
-		css_url = url_for('static', filename='css/style.css')
-		self.render("index.html", cssurl = cssurl)
+		self.render("index.html")
 
 app = webapp2.WSGIApplication([('/', MainPage)], debug=True)

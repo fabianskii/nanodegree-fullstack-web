@@ -1,0 +1,59 @@
+body {
+	font-family: "Lato", sans-serif;
+}
+
+header {
+	max-height: 20%;
+}
+
+footer {
+
+}
+
+a {
+	color: #2d3c49;
+}
+
+a:hover {
+	text-decoration: none;
+	color: #7d97ad;
+}
+
+p {
+	color: #2d3c49;
+}
+
+h1, h2, h3, h4, h5, h6 { 
+	color: #2d3c49; 
+	font-style: italic;
+}
+
+hr.header {
+
+    background-color: #7d97ad;
+    height: 4px;
+}
+
+hr.footer {
+	background-color: #7d97ad;
+    height: 1px;
+}
+
+.head-logo {
+	max-height: 100px;
+	margin-left: -5px;
+    margin-top: 20px;
+}
+
+.color-dark-blue {
+	color: #2d3c49;
+}
+
+.color-light-blue {
+	color: #7d97ad;
+}
+
+.text-light {
+	font-weight: lighter;
+	font-size: 60px;
+}
