@@ -1,0 +1,13 @@
+{% extends "index.html" %}
+
+{% block content %}
+<a href="/createarticle">new post</a>
+<div class="col-md-12">
+	{% for entry in blogEntry %}
+		<div class="col-md-12">
+			<div>{{entry.title}}</div>
+			<div>{{entry.content}}</div>
+		</div>
+	{% endfor %}
+</div>
+{% endblock %}

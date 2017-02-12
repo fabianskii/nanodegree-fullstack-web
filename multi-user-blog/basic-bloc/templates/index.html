@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Jane Doette - Front-End Ninja</title>
-		<link rel="stylesheet" type="text/css" href="/css/bootstrap.css">
+		<link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css">
 		<link rel="stylesheet" type="text/css" href="/css/main.css">
 		<link href="https://fonts.googleapis.com/css?family=Lato:300,400" rel="stylesheet">
 	</head>
@@ -34,10 +34,11 @@
 				</div>
 			</main>
 			<section id="main-content">
-				<div class="row text-center color-dark-blue">
-					<div class="col-md-12">
-					</div>
-				</div>
+				{% block content %}
+
+				{% endblock %}
+					
+				
 			</section>
 			<footer>
 				<div class="row">	

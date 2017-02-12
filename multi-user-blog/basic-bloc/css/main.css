@@ -28,6 +28,14 @@ h1, h2, h3, h4, h5, h6 {
 	font-style: italic;
 }
 
+form {
+	margin-top: 20px;
+}
+
+textarea {
+	min-height: 100px;
+}
+
 hr.header {
 
     background-color: #7d97ad;

@@ -1,0 +1,28 @@
+{% extends "index.html" %} 
+
+{% block content %}
+
+<div class="row color-dark-blue">
+	<div class="container text-left">
+		<form>
+			<div class="form-group row">
+				<label class="col-md-1 col-form-label" for="title">Title:</label>
+				<div class="col-md-11">
+					<input type="text" class="form-control" name="title" value="{{title}}">
+				</div>
+				
+			</div>
+			<div class="form-group row">
+				<label class="col-md-1 col-form-label" for="title">Content:</label>
+				<div class="col-md-11">
+					<textarea class="form-control" name="content" value="{{content}}"></textarea>
+				</div>
+			</div>
+			<div class="col-md-12">
+				<input class="form-control" type="submit" name="send" formmethod="post">
+			</div>
+		</form>
+	</div>
+</div>
+
+{% endblock %}
