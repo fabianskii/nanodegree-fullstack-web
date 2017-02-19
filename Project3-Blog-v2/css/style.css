@@ -1,0 +1,9 @@
+body {
+	margin:0;
+}
+
+h1 {
+	height: 50px;
+	background-color: #ddd;
+	color: #bbb;
+}

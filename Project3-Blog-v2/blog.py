@@ -9,6 +9,7 @@ import jinja2
 
 from google.appengine.ext import db
 from string import letters
+from user import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 
 				'templates')
@@ -57,10 +58,15 @@ class BlogHandler(webapp2.RequestHandler):
 		webapp2.RequestHandler.initialize(self, *a, **kw)
 		uid = self.read_secure_cookie('user_id')
 		self.user = uid and User.by_id(int(uid))
-
+	def post(self):
+		self.write("%s" % vars(self))
 class BlogFront(BlogHandler):
 	def get(self):
 		self.render('blogfront.html')
+
+
+
+### User
 
 ### implementation of posts goes here
 class Post(db.Model):
@@ -68,26 +74,44 @@ class Post(db.Model):
 	content = db.TextProperty(required = True)
 	created = db.DateTimeProperty(auto_now_add = True)
 	last_modified = db.DateTimeProperty(auto_now = True)
+	user = db.ReferenceProperty(User)
 
 	def render(self):
 		self._render_text = self.content.replace('\n', '<br>')
 		return render_str("post.html", p = self)
 		
+	@classmethod
+	def post_by_id(cls,uid):
+		return Post.get_by_id(uid)
+
 class PostPage(BlogHandler):
 	def get(self, post_id):
 		key = db.Key.from_path('Post', int(post_id))
-		post = db.get(key)
+		posts = []
+		posts.append(db.get(key))
 
-		if not post:
+		if not posts:
 			self.error(404)
 			return
 
-		self.render("permalink.html", post = post)
+		self.render("blogfront.html", posts = posts)
+	def post(self, post_id):
+		self.delete(post_id)
+
+	def delete(self, post_id):
+		self.write('%s' % Post.get_by_id(int(post_id)).user.key().id())
+		self.write('%s ' % post_id)
+		self.write('%s ' % self.user.key().id())
+		post = Post.get_by_id(int(post_id))
+		if self.user and post.user.key().id() == self.user.key().id():
+			self.write("mmhh")
+		else:
+			self.write("neeein")
 
 class BlogFront(BlogHandler):
 	def get(self):
 		posts = Post.all().order('-created')
-		self.render('front.html', posts = posts)
+		self.render('blogfront.html', posts = posts)
 
 class NewPost(BlogHandler):
 	def get(self):
@@ -102,13 +126,21 @@ class NewPost(BlogHandler):
 
 		subject = self.request.get('subject')
 		content = self.request.get('content')
-		if subject and content:
-			p = Post(subject = subject, content = content)
+	
+		if subject and content and self.user:
+			p = Post(subject = subject, content = content, user = self.user)
 			p.put()
 			self.redirect('/blog/%s' % str(p.key().id()))
 		else:
 			error = "subject and content, please!"
 			self.render("newpost.html", subject = subject, content = content, error = error)
+
+class PostDelete(BlogHandler):
+	def post(self):
+		if self.user:
+			self.write("jaaa")
+		else:
+			self.write("neeein")
 
 ###User checks
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
@@ -194,31 +226,7 @@ class Login(BlogHandler):
 			msg = 'Invalid login'
 			self.render('login-form.html', error = msg)
 
-### User
-class User(db.Model):
-	name = db.StringProperty(required = True)
-	pw_hash = db.StringProperty(required = True)
-	
-	@classmethod
-	def by_id(cls,uid):
-		return User.get_by_id(uid)
 
-	@classmethod
-	def by_name(cls, name):
-		u = User.all().filter('name = ', name).get()
-		return u
-
-	@classmethod
-	def register(cls, name, pw):
-		pw_hash = make_pw_hash(name, pw)
-		return User(name = name,
-					pw_hash = pw_hash)
-
-	@classmethod
-	def login(cls, name, pw):
-		u = cls.by_name(name)
-		if u and valid_pw(name, pw, u.pw_hash):
-			return u
 
 app = webapp2.WSGIApplication([('/', BlogFront),
 								('/blog', BlogFront),
@@ -226,5 +234,6 @@ app = webapp2.WSGIApplication([('/', BlogFront),
 								('/signup', Register),
 								('/newpost', NewPost),
 								('/blog/?', BlogFront),
-								('/blog/([0-9]+)', PostPage)
+								('/blog/([0-9]+)', PostPage),
+								('/delete', PostDelete)
 								], debug = True)
