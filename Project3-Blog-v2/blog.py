@@ -9,7 +9,6 @@ import jinja2
 
 from google.appengine.ext import db
 from string import letters
-from user import User
 
 template_dir = os.path.join(os.path.dirname(__file__), 
 				'templates')
@@ -60,6 +59,10 @@ class BlogHandler(webapp2.RequestHandler):
 		self.user = uid and User.by_id(int(uid))
 	def post(self):
 		self.write("%s" % vars(self))
+
+	def logout(self):
+		self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
+
 class BlogFront(BlogHandler):
 	def get(self):
 		self.render('blogfront.html')
@@ -67,6 +70,31 @@ class BlogFront(BlogHandler):
 
 
 ### User
+class User(db.Model):
+	name = db.StringProperty(required = True)
+	pw_hash = db.StringProperty(required = True)
+	
+	@classmethod
+	def by_id(cls,uid):
+		return User.get_by_id(uid)
+
+	@classmethod
+	def by_name(cls, name):
+		u = User.all().filter('name = ', name).get()
+		return u
+
+	@classmethod
+	def register(cls, name, pw):
+		pw_hash = make_pw_hash(name, pw)
+		return User(name = name,
+					pw_hash = pw_hash)
+
+	@classmethod
+	def login(cls, name, pw):
+		u = cls.by_name(name)
+		if u and valid_pw(name, pw, u.pw_hash):
+			return u
+
 
 ### implementation of posts goes here
 class Post(db.Model):
@@ -75,6 +103,7 @@ class Post(db.Model):
 	created = db.DateTimeProperty(auto_now_add = True)
 	last_modified = db.DateTimeProperty(auto_now = True)
 	user = db.ReferenceProperty(User)
+	likes = db.ListProperty(db.Key)
 
 	def render(self):
 		self._render_text = self.content.replace('\n', '<br>')
@@ -95,18 +124,6 @@ class PostPage(BlogHandler):
 			return
 
 		self.render("blogfront.html", posts = posts)
-	def post(self, post_id):
-		self.delete(post_id)
-
-	def delete(self, post_id):
-		self.write('%s' % Post.get_by_id(int(post_id)).user.key().id())
-		self.write('%s ' % post_id)
-		self.write('%s ' % self.user.key().id())
-		post = Post.get_by_id(int(post_id))
-		if self.user and post.user.key().id() == self.user.key().id():
-			self.write("mmhh")
-		else:
-			self.write("neeein")
 
 class BlogFront(BlogHandler):
 	def get(self):
@@ -136,11 +153,24 @@ class NewPost(BlogHandler):
 			self.render("newpost.html", subject = subject, content = content, error = error)
 
 class PostDelete(BlogHandler):
-	def post(self):
-		if self.user:
-			self.write("jaaa")
-		else:
-			self.write("neeein")
+	def get(self, post):
+		post = Post.post_by_id(int(post))
+		if self.user and post.user.key().id() == self.user.key().id():
+			post.delete()
+			self.render('deleted.html')
+		else:	
+			self.redirect('/blog')
+
+class PostLike(BlogHandler):
+	def get(self, post):
+		post = Post.post_by_id(int(post))
+		if self.user and not (post.user.key().id() == self.user.key().id()):
+			if self.user.key() not in post.likes:
+				post.likes.append(self.user.key())
+			else:
+				likes = post.likes.all()
+				likes.delete(self.user)	
+		## here it should render.
 
 ###User checks
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
@@ -221,19 +251,34 @@ class Login(BlogHandler):
 		u = User.login(username, password)
 		if u:
 			self.login(u)
-			self.redirect('/blog')
+			self.redirect('/welcome')
 		else:
 			msg = 'Invalid login'
 			self.render('login-form.html', error = msg)
 
+class Welcome(BlogHandler):
+	def get(self):
+		if self.user:
+			self.render('welcome.html', username = self.user.name)
+		else:
+			self.redirect('/signup')
+
+### Logout
+class Logout(BlogHandler):
+	def get(self):
+		self.logout()
+		self.redirect('/login')
 
 
 app = webapp2.WSGIApplication([('/', BlogFront),
 								('/blog', BlogFront),
 								('/login', Login),
+								('/logout', Logout),
 								('/signup', Register),
 								('/newpost', NewPost),
 								('/blog/?', BlogFront),
 								('/blog/([0-9]+)', PostPage),
-								('/delete', PostDelete)
+								('/delete/([0-9]+)', PostDelete),
+								('/welcome', Welcome),
+								('/like/([0-9]+)', PostLike)
 								], debug = True)

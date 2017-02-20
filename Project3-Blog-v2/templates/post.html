@@ -14,9 +14,8 @@
     {{p._render_text | safe}}
   </div>
   <div class="row">
-    <form method="post">
-      <input type="submit" name="delete">
-      <a href="/delete">delete</a>
-    </form>
+      <a href="/delete/{{p.key().id()}}">delete</a> | 
+      <a href="/like/{{p.key().id()}}">like</a> |
+      <a href="/comment/{{p.key().id()}}">comment</a>
   </div>
 </div>
