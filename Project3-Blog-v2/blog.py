@@ -113,6 +113,10 @@ class Post(db.Model):
 	def post_by_id(cls,uid):
 		return Post.get_by_id(uid)
 
+	@property
+	def likes(self):
+		return len(likes)
+
 class PostPage(BlogHandler):
 	def get(self, post_id):
 		key = db.Key.from_path('Post', int(post_id))
@@ -161,6 +165,7 @@ class PostDelete(BlogHandler):
 		else:	
 			self.redirect('/blog')
 
+
 class PostLike(BlogHandler):
 	def get(self, post):
 		post = Post.post_by_id(int(post))
@@ -170,7 +175,8 @@ class PostLike(BlogHandler):
 			else:
 				likes = post.likes.all()
 				likes.delete(self.user)	
-		## here it should render.
+		
+		self.redirect('/blog')
 
 ###User checks
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
