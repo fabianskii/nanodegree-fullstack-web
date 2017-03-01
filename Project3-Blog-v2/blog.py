@@ -114,8 +114,8 @@ class Post(db.Model):
 		return Post.get_by_id(uid)
 
 	@property
-	def likes(self):
-		return len(likes)
+	def likesCount(self):
+		return len(self.likes)
 
 class PostPage(BlogHandler):
 	def get(self, post_id):
@@ -169,13 +169,17 @@ class PostDelete(BlogHandler):
 class PostLike(BlogHandler):
 	def get(self, post):
 		post = Post.post_by_id(int(post))
+		self.write(post.user.name)
+		#user must be logged in and must not like his own post
 		if self.user and not (post.user.key().id() == self.user.key().id()):
+			self.write("# first if #")
 			if self.user.key() not in post.likes:
+				self.write("second if")
 				post.likes.append(self.user.key())
+				post.put()
 			else:
-				likes = post.likes.all()
-				likes.delete(self.user)	
-		
+				post.likes.remove(self.user.key())
+				post.put()	
 		self.redirect('/blog')
 
 ###User checks
