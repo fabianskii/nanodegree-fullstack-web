@@ -3,7 +3,7 @@ import hashlib
 import hmac
 import re
 import random
-
+import urllib2
 import webapp2
 import jinja2
 
@@ -97,6 +97,8 @@ class User(db.Model):
 
 
 ### implementation of posts goes here
+
+
 class Post(db.Model):
 	subject = db.StringProperty(required = True)
 	content = db.TextProperty(required = True)
@@ -116,6 +118,12 @@ class Post(db.Model):
 	@property
 	def likesCount(self):
 		return len(self.likes)
+
+class Comment(db.Model):
+    user = db.ReferenceProperty(User)
+    comment = db.TextProperty(required = True)
+    post = db.ReferenceProperty(Post, collection_name='comments')
+    created = db.DateTimeProperty(auto_now_add = True)
 
 class PostPage(BlogHandler):
 	def get(self, post_id):
@@ -167,20 +175,37 @@ class PostDelete(BlogHandler):
 
 
 class PostLike(BlogHandler):
-	def get(self, post):
-		post = Post.post_by_id(int(post))
-		self.write(post.user.name)
+	def get(self, post_id):
+		post = Post.post_by_id(int(post_id))
 		#user must be logged in and must not like his own post
 		if self.user and not (post.user.key().id() == self.user.key().id()):
-			self.write("# first if #")
 			if self.user.key() not in post.likes:
-				self.write("second if")
 				post.likes.append(self.user.key())
 				post.put()
 			else:
 				post.likes.remove(self.user.key())
 				post.put()	
 		self.redirect('/blog')
+
+class NewPostComment(BlogHandler):
+	def get(self, post):
+		if self.user:
+			self.render('newcomment.html')
+		else:
+			self.redirect('/login')
+
+	def post(self, post_id):
+		self.write("Test: %s" % post_id)
+		if not self.user:
+			self.redirect('/login')
+		comment = self.request.get('comment')
+		post = Post.post_by_id(int(post_id))
+		if comment and self.user and post:
+			Comment(user = User.by_name(self.user), comment = comment, post = post).put()
+
+		#comments = post.comments.order('-created')
+
+
 
 ###User checks
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
@@ -290,5 +315,6 @@ app = webapp2.WSGIApplication([('/', BlogFront),
 								('/blog/([0-9]+)', PostPage),
 								('/delete/([0-9]+)', PostDelete),
 								('/welcome', Welcome),
-								('/like/([0-9]+)', PostLike)
+								('/like/([0-9]+)', PostLike),
+								('/comment/([0-9]+)', NewPostComment)
 								], debug = True)
