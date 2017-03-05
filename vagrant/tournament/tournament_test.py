@@ -52,6 +52,7 @@ def testStandingsBeforeMatches():
     registerPlayer("Melpomene Murray")
     registerPlayer("Randy Schwartz")
     standings = playerStandings()
+    print "Standings: %s" %standings
     if len(standings) < 2:
         raise ValueError("Players should appear in playerStandings even before "
                          "they have played any matches.")
@@ -61,6 +62,7 @@ def testStandingsBeforeMatches():
         raise ValueError("Each playerStandings row should have four columns.")
     [(id1, name1, wins1, matches1), (id2, name2, wins2, matches2)] = standings
     if matches1 != 0 or matches2 != 0 or wins1 != 0 or wins2 != 0:
+        print "matches1: #%s matches2: #%s wins1: #%s wins2: #%s " % (matches1, matches2, wins1, wins2)
         raise ValueError(
             "Newly registered players should have no matches or wins.")
     if set([name1, name2]) != set(["Melpomene Murray", "Randy Schwartz"]):

@@ -14,27 +14,36 @@ def connect():
 def deleteMatches():
     """Remove all the match records from the database."""
     DB = connect()
+
     connection = DB.cursor()
     connection.execute("DELETE FROM match")
+
     DB.commit()
     DB.close()
 
 def deletePlayers():
     """Remove all the player records from the database."""
+
     DB = connect()
     connection = DB.cursor()
+
     connection.execute("DELETE FROM player")
+
     DB.commit()
     DB.close()
 
 def countPlayers():
     """Returns the number of players currently registered."""
+
     DB = connect()
     connection = DB.cursor()
+
     connection.execute("SELECT count(name) as playerCount FROM player")
     response = {'player_count': connection.fetchone()[0]}
+
     DB.commit()
     DB.close()
+
     return response['player_count']
 
 def registerPlayer(name):
@@ -48,7 +57,9 @@ def registerPlayer(name):
     """
     DB = connect()
     c = DB.cursor()
+
     c.execute("INSERT INTO player (name) VALUES (%s)", (name,))
+
     DB.commit()
     DB.close()
 
@@ -67,14 +78,22 @@ def playerStandings():
     """
     DB = connect()
     connection = DB.cursor()
-    connection.execute(" SELECT r.*, count(m.match_id) FROM ranking as r, match as m "
-                       "WHERE m.player_1_id = r.player_id OR m.player_2_id = r.player_id "
-                       "GROUP BY r.player_id,r.name,r.wins;")
-    fetchall = connection.fetchall()
-    print "**** %s" % fetchall
-    response = ({'id': str(row[0]),'name': str(row[1]), 'wins': str(row[2]), 'matches':str(row[3])} for row in fetchall)
-    print "#### %s" % response
-    return response;
+
+    if (countPlayers() == 0):
+        return []
+    #Maybe a view would make a better job here...
+    connection.execute("WITH wins as (SELECT p.player_id, COUNT(winner) as wins "
+                       "FROM player as p LEFT JOIN match ON p.player_id = match.winner "
+                       "GROUP BY p.player_id), loses as ( SELECT p.player_id, COUNT(loser) as loses "
+                       "FROM player as p LEFT JOIN match ON p.player_id = match.loser GROUP BY p.player_id) "
+                       "SELECT w.player_id, p.name, w.wins, l.loses+w.wins as matches FROM wins as w "
+                       "LEFT JOIN (loses as l "
+                       "LEFT JOIN player as p ON l.player_id = p.player_id) ON w.player_id = l.player_id "
+                       "GROUP BY w.player_id,p.name,w.wins,l.loses ORDER BY w.wins desc")
+
+    results = connection.fetchall()
+    return results;
+
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
 
@@ -82,8 +101,15 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
-    
- 
+    DB = connect()
+    connection = DB.cursor()
+
+    connection.execute("INSERT INTO match (winner, loser) "
+                        "VALUES (%s, %s)", (winner, loser,))
+
+    DB.commit()
+    DB.close
+
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
   
@@ -99,5 +125,18 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+
+    standings = playerStandings()
+    pairings = []
+
+    while (standings):
+        for pairs in xrange(2):
+            player1 = standings.pop(0)
+            player2 = standings.pop(0)
+            match = (player1[0], player1[1], player2[0], player2[1])
+            pairings.append(match)
+
+    return pairings
+
 
 
